@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+option csharp_namespace = "BankClientgPRCService.Protos";
+
+package bill;
+ 
+service BillService{
+  rpc ListBills(BillByUserRequest) returns (ListReply); 
+}
+
+message BillByUserRequest{
+  string token = 1;
+}
+
+message ListReply{
+  repeated BillReply Bills = 1;
+}
+
+message BillReply{
+  string name = 1;
+  string value = 2;
+  string userId = 3;
+}
