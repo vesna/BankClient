@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BankClientgPRCService.Migrations
 {
     [DbContext(typeof(BankClientContext))]
-    [Migration("20241008225145_InitialCreate")]
+    [Migration("20241009194239_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -28,7 +28,7 @@ namespace BankClientgPRCService.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("BankClientgPRCService.Models.Bill", b =>
+            modelBuilder.Entity("BankClientgPRCService.Models.Account", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -49,11 +49,11 @@ namespace BankClientgPRCService.Migrations
                         .HasColumnName("value");
 
                     b.HasKey("Id")
-                        .HasName("bill_pkey");
+                        .HasName("account_pkey");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Bill", (string)null);
+                    b.ToTable("Account", (string)null);
                 });
 
             modelBuilder.Entity("BankClientgPRCService.Models.Role", b =>
@@ -89,7 +89,7 @@ namespace BankClientgPRCService.Migrations
                         .HasColumnType("character varying(150)")
                         .HasColumnName("name");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -117,14 +117,14 @@ namespace BankClientgPRCService.Migrations
                     b.ToTable("User", (string)null);
                 });
 
-            modelBuilder.Entity("BankClientgPRCService.Models.Bill", b =>
+            modelBuilder.Entity("BankClientgPRCService.Models.Account", b =>
                 {
                     b.HasOne("BankClientgPRCService.Models.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("bill_from_user_id_fkey");
+                        .HasConstraintName("account_from_user_id_fkey");
                 });
 
             modelBuilder.Entity("BankClientgPRCService.Models.User", b =>

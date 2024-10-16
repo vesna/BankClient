@@ -1,5 +1,12 @@
 ﻿using BankClientWebApi.Filters;
 using BankClientWebApi.Middleware;
+using BankClientWebApi.Services.Abstractions;
+using BankClientWebApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using BankClientWebApi.Mappers;
 
 namespace BankClientWebApi
 {
@@ -15,33 +22,79 @@ namespace BankClientWebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<ValidationFilterAttribute>();
-            services.AddControllers(options =>
-            {
-                options.MaxModelValidationErrors = 100;
-                options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
+            services.AddAutoMapper(typeof(AppMappingProfile));
 
-            })
-                .ConfigureApiBehaviorOptions(options =>
-                {
-                    options.SuppressMapClientErrors = true;
-                    options.SuppressModelStateInvalidFilter = true;
-                });
+            var jwtIssuer = Configuration.GetSection("Jwt:Issuer").Get<string>();
+            var jwtKey = Configuration.GetSection("Jwt:Key").Get<string>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+             .AddJwtBearer(options =>
+             {
+                 options.TokenValidationParameters = new TokenValidationParameters
+                 {
+                     ValidateIssuer = true,
+                     ValidateAudience = true,
+                     ValidateLifetime = true,
+                     ValidateIssuerSigningKey = true,
+                     ValidIssuer = jwtIssuer,
+                     ValidAudience = jwtIssuer,
+                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+                 };
+             });
+            services.AddSwaggerGen(
+                    options =>
+                    {
+                        options.AddSecurityDefinition(
+                            JwtBearerDefaults.AuthenticationScheme,
+                            new()
+                            {
+                                In = ParameterLocation.Header,
+                                Description = "",
+                                Name = "Authorization",
+                                Type = SecuritySchemeType.Http,
+                                BearerFormat = "Jwt",
+                                Scheme = JwtBearerDefaults.AuthenticationScheme
+                            });
+                        options.AddSecurityRequirement(new() {
+                            {
+                                new OpenApiSecurityScheme
+                                {
+                                    Reference = new OpenApiReference
+                                    {
+                                        Type = ReferenceType.SecurityScheme,
+                                        Id = JwtBearerDefaults.AuthenticationScheme
+                                    }
+                                },
+                                new List<string>()
+                            }
+                        });
+                    }
+            );
+
+            services.AddControllers();
+            services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+            services.AddSingleton<ITokenService, TokenService>();
+            services.AddCors(p => p.AddPolicy("DefaultOrigins", builder =>
+            {
+                builder.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+            }));
+            
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
 
-            app.UseSwagger();
-            app.UseSwaggerUI();
-
             app.UseMiddleware<ExceptionMiddleware>();
-
+            app.UseHttpsRedirection();
             app.UseRouting();
+            app.UseCors("DefaultOrigins");
+            app.UseAuthentication();
             app.UseAuthorization();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

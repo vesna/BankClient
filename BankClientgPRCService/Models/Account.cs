@@ -2,7 +2,7 @@
 
 namespace BankClientgPRCService.Models
 {
-    public class Bill
+    public class Account
     {
         [Key] public Guid Id { get; set; } = Guid.NewGuid();
         public string Name { get; set; }

@@ -1,38 +1,38 @@
-﻿using BankClientgPRCService.Securities;
-using BankClientgPRCService.Services.Abstractions;
+﻿using BankClientWebApi.Protos;
+using BankClientWebApi.Services.Abstractions;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 
-namespace BankClientgPRCService.Services
+namespace BankClientWebApi.Services
 {
     public class TokenService : ITokenService
     {
-        private readonly JwtConfiguration _jwtConfiguration;
+        private readonly IConfiguration _config;
 
-        public TokenService(JwtConfiguration jwtConfiguration)
+        public TokenService(IConfiguration config)
         {
-            _jwtConfiguration = jwtConfiguration;
+            _config = config;
         }
 
         public string GenerateToken(string phone, string roleName)
         {
-            var cred = new SigningCredentials(_jwtConfiguration.GetSingingKey(), SecurityAlgorithms.HmacSha256);
-
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
             var claims = new[]
             {
-                new Claim(ClaimTypes.MobilePhone, phone),
-                new Claim(ClaimTypes.Role, roleName)
-            };
+                    new Claim(ClaimTypes.MobilePhone, phone),
+                    new Claim(ClaimTypes.Role, roleName)
+                };
 
-            var token = new JwtSecurityToken(
-                issuer: _jwtConfiguration.Issuer,
-                audience: _jwtConfiguration.Audience,
-                claims: claims,
-                expires: DateTime.Now.AddMinutes(30),
-                signingCredentials: cred);
+            var Sectoken = new JwtSecurityToken(_config["Jwt:Issuer"],
+              _config["Jwt:Issuer"],
+              claims: claims,
+              expires: DateTime.Now.AddMinutes(120),
+              signingCredentials: credentials);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            return new JwtSecurityTokenHandler().WriteToken(Sectoken);
         }
 
         public string GetRoleNameFromToken(string stream)

@@ -1,7 +1,6 @@
 ﻿using BankClientgPRCService.Models;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Emit;
 
 namespace BankClientgPRCService.Configuration
 {

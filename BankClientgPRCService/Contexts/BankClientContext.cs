@@ -12,7 +12,7 @@ namespace BankClientgPRCService.Contexts
     {
         public DbSet<User> Users { get; set; }
         public DbSet<Role> Roles { get; set; }
-        public DbSet<Bill> Bills { get; set; }
+        public DbSet<Account> Accounts { get; set; }
 
         public BankClientContext(DbContextOptions<BankClientContext> options)
             : base(options)

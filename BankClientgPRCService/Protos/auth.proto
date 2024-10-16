@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option csharp_namespace = "BankClientgPRCService.Protos";
+
+package auth;
+ 
+service AuthService{
+  rpc Register(RegistrationRequest) returns (AuthReply);
+  rpc Login(LoginRequest) returns (AuthReply);  
+}
+ 
+message RegistrationRequest{
+  string name = 1;
+  string phone = 2;
+  string password = 3;
+  string roleName = 4;
+}
+
+message LoginRequest{
+  string phone = 1;
+  string password = 2;
+}
+
+message AuthReply{
+    string id = 1;
+    string phone = 2;
+    string roleName = 3;
+}

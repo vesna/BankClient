@@ -1,8 +1,6 @@
 using BankClientgPRCService.Contexts;
-using BankClientgPRCService.Securities;
 using BankClientgPRCService.Services;
 using BankClientgPRCService.Services.Abstractions;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 namespace BankClientgPRCService
@@ -18,35 +16,13 @@ namespace BankClientgPRCService
             });
 
             builder.Services.AddGrpc();
-
-            var jwt = builder.Configuration.GetSection("JwtConfiguration").Get<JwtConfiguration>()
-               ?? throw new Exception("JwtConfiguration not found");
-            builder.Services
-                .AddSingleton(provider => jwt)
-                .AddSingleton<IEncryptService, EncryptService>()
-                .AddSingleton<ITokenService, TokenService>();
-
-
-            builder.Services.AddAuthorization();
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
-                {
-                    options.TokenValidationParameters = new()
-                    {
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ValidateIssuerSigningKey = true,
-                        ValidIssuer = jwt.Issuer,
-                        ValidAudience = jwt.Audience,
-                        IssuerSigningKey = jwt.GetSingingKey()
-                    };
-
-                });
+            builder.Services.AddSingleton<IEncryptService, EncryptService>();
 
             var app = builder.Build();
+
             app.MapGrpcService<UserApiService>();
-            app.MapGrpcService<BillApiService>();
+            app.MapGrpcService<AccountApiService>();
+            app.MapGrpcService<AuthApiService>();
 
             app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client...");
             app.Run();

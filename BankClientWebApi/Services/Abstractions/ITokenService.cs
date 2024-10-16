@@ -1,4 +1,4 @@
-﻿namespace BankClientgPRCService.Services.Abstractions
+﻿namespace BankClientWebApi.Services.Abstractions
 {
     public interface ITokenService
     {

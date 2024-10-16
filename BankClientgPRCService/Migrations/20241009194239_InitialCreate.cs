@@ -30,7 +30,7 @@ namespace BankClientgPRCService.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     name = table.Column<string>(type: "character varying(150)", maxLength: 150, nullable: false),
                     phone = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
-                    Password = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
                     Salt = table.Column<string>(type: "text", nullable: false),
                     RoleId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
@@ -46,7 +46,7 @@ namespace BankClientgPRCService.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Bill",
+                name: "Account",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -56,9 +56,9 @@ namespace BankClientgPRCService.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("bill_pkey", x => x.Id);
+                    table.PrimaryKey("account_pkey", x => x.Id);
                     table.ForeignKey(
-                        name: "bill_from_user_id_fkey",
+                        name: "account_from_user_id_fkey",
                         column: x => x.UserId,
                         principalTable: "User",
                         principalColumn: "Id",
@@ -66,8 +66,8 @@ namespace BankClientgPRCService.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Bill_UserId",
-                table: "Bill",
+                name: "IX_Account_UserId",
+                table: "Account",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
@@ -92,7 +92,7 @@ namespace BankClientgPRCService.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "Bill");
+                name: "Account");
 
             migrationBuilder.DropTable(
                 name: "User");

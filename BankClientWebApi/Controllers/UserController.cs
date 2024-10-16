@@ -1,9 +1,12 @@
+using AutoMapper;
 using BankClientWebApi.Exceptions;
-using BankClientWebApi.Filters;
+using BankClientWebApi.Models;
 using BankClientWebApi.Protos;
+using BankClientWebApi.Services.Abstractions;
 using Grpc.Net.Client;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using System.ComponentModel.DataAnnotations;
 
 namespace BankClientWebApi.Controllers
 {
@@ -11,64 +14,36 @@ namespace BankClientWebApi.Controllers
     [Route("[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly ILogger<UserController> _logger;
         private readonly UserService.UserServiceClient? _client;
+        private readonly ITokenService _tokenService;
+        private readonly IMapper _mapper;
 
-        public UserController(ILogger<UserController> logger)
+        public UserController(IMapper mapper, ITokenService tokenService, IConfiguration config)
         {
-            _logger = logger;
-            _client = new UserService.UserServiceClient(GrpcChannel.ForAddress("https://localhost:7052"));
-        }
-
-        [HttpPost]
-        [Route("register")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        [ProducesResponseType(typeof(CreateUserRequest), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
-        public ActionResult<string> Register([FromBody, Required] CreateUserRequest request)
-        {
-            try
-            {
-                var token = _client.RegisterUser(request);
-                return Ok(token);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
-        [HttpPost]
-        [Route("login")]
-        [ServiceFilter(typeof(ValidationFilterAttribute))]
-        [ProducesResponseType(typeof(LoginUserRequest), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
-        public ActionResult<string> Login([FromBody, Required] LoginUserRequest request)
-        {
-            try
-            {
-                var token = _client.Login(request);
-                return Ok(token);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            _client = new UserService.UserServiceClient(GrpcChannel.ForAddress(config.GetSection("Grpc:Channel").Get<string>()));
+            _tokenService = tokenService;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        [Route("getUser/{token}")]
+        [Route("info")]
+        [Authorize]
+        [EnableCors("DefaultOrigins")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(Error), StatusCodes.Status500InternalServerError)]
-        public ActionResult<UserReply> GetUser([FromRoute, Required] string token)
+        public async Task<ActionResult> GetUserAsync()
         {
             try
             {
-                var reply = _client.GetUser(new GetUserRequest { Token = token});
-                return Ok(reply);
+              var q = HttpContext.Request.Headers.Authorization;
+                var token = q[0].Split(' ')[1];
+                var phone = _tokenService.GetPhoneFromToken(token);
+
+                var reply = await _client.GetUserAsync(new GetUserRequest { Phone = phone });
+
+                var response = _mapper.Map<UserResponse>(reply);
+                return Ok(response);
             }
             catch (Exception ex)
             {

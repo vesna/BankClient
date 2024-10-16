@@ -13,7 +13,7 @@ namespace BankClientgPRCService.Configuration
             builder.Property(x => x.Name).IsRequired().HasMaxLength(150).HasColumnName("name");
             builder.Property(x => x.Phone).IsRequired().HasMaxLength(50).HasColumnName("phone");
             builder.HasIndex(x => x.Phone).IsUnique();
-            builder.Property(x => x.Password).IsRequired();
+            builder.Property(x => x.PasswordHash).IsRequired();
             builder.Property(x => x.Salt).IsRequired();
 
             builder.HasOne<Role>().WithMany().HasForeignKey(x => x.RoleId).HasConstraintName("user_from_role_id_fkey");

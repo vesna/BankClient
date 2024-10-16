@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option csharp_namespace = "BankClientgPRCService.Protos";
+
+package account;
+ 
+service AccountService{
+  rpc ListAccounts(AccountByUserRequest) returns (ListReply); 
+}
+
+message AccountByUserRequest{
+  string phone = 1;
+}
+
+message ListReply{
+  repeated AccountReply Accounts = 1;
+}
+
+message AccountReply{
+  string id = 1;
+  string name = 2;
+  string value = 3;
+  string userId = 4;
+}
